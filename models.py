@@ -19,6 +19,6 @@ class CarRentalDB:
         return result.single()
 
 
-db = CarRentalDB("neo4j://localhost:7687", "neo4j", "your_password")
+db = CarRentalDB("neo4j://localhost:7687", 'Neo4j', 'your_password')
 
 
