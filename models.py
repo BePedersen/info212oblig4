@@ -8,117 +8,172 @@ class CarRentalDB:
         self.driver.close()
 
     # Car CRUD
-    def create_car(self, car_id, make, model, year, location, status):
+    def create_car(self, reg_nr, make, model, year, location, status):
         with self.driver.session() as session:
-            session.run("CREATE (c:Car {id: $car_id, make: $make, model: $model, year: $year, location: $location ,status: $status})",
-                    car_id=car_id, make=make, model=model, year=year, location=location, status=status)
+            session.run("CREATE (c:Car {reg_nr: $reg_nr, make: $make, model: $model, year: $year, location: $location ,status: $status})",
+                    reg_nr=reg_nr, make=make, model=model, year=year, location=location, status=status)
 
-    def read_car(self, car_id):
+    def read_car(self, reg_nr):
         with self.driver.session() as session:
-            result = session.run("MATCH (c:Car {id: $car_id}) RETURN c", car_id=car_id)
-            return result.single()
+            result = session.run("MATCH (c:Car {reg_nr: $reg_nr}) RETURN c", reg_nr=reg_nr)
+            record = result.single() 
+        if record:
+            car_node = record["c"] 
+            return dict(car_node)  
+        else:
+            return None  
 
-    def update_car(self, car_id, updates):
+    def update_car(self, reg_nr, updates):
         with self.driver.session() as session:
             session.run(
-                "MATCH (c:Car {id: $car_id}) SET c += $updates RETURN c",
-                car_id=car_id, updates=updates
+                "MATCH (c:Car {reg_nr: $reg_nr}) SET c += $updates RETURN c",
+                reg_nr=reg_nr, updates=updates
             )
 
-    def delete_car(self, car_id):
+    def delete_car(self, reg_nr):
         with self.driver.session() as session:
-            session.run("MATCH (c:Car {id: $car_id}) DELETE c", car_id=car_id)
+            session.run("MATCH (c:Car {reg_nr: $reg_nr}) DELETE c", reg_nr=reg_nr)
 
     # Customer CRUD
     def create_customer(self, customer_id, name, age, address):
         with self.driver.session() as session:
             session.run(
-                "CREATE (cust:Customer {id: $customer_id, name: $name, age: $age, address: $address})",
+                "CREATE (cust:Customer {customer_id: $customer_id, name: $name, age: $age, address: $address})",
                 customer_id=customer_id, name=name, age=age, address=address
             )
 
     def read_customer(self, customer_id):
         with self.driver.session() as session:
-            result = session.run("MATCH (cust:Customer {id: $customer_id}) RETURN cust", customer_id=customer_id)
-            return result.single()
+            result = session.run("MATCH (cust:Customer {customer_id: $customer_id}) RETURN cust", customer_id=customer_id)
+            record = result.single()  
+        if record:
+            customer_node = record["cust"]  
+            return dict(customer_node)  
+        else:
+            return None  
 
     def update_customer(self, customer_id, updates):
         with self.driver.session() as session:
             session.run(
-                "MATCH (cust:Customer {id: $customer_id}) SET cust += $updates RETURN cust",
+                "MATCH (cust:Customer {customer_id: $customer_id}) SET cust += $updates RETURN cust",
                 customer_id=customer_id, updates=updates
             )
 
     def delete_customer(self, customer_id):
         with self.driver.session() as session:
-            session.run("MATCH (cust:Customer {id: $customer_id}) DELETE cust", customer_id=customer_id)
+            session.run("MATCH (cust:Customer {customer_id: $customer_id}) DELETE cust", customer_id=customer_id)
 
     # Employee CRUD
     def create_employee(self, employee_id, name, address, branch):
         with self.driver.session() as session:
             session.run(
-                "CREATE (e:Employee {id: $employee_id, name: $name, address: $address, branch: $branch})",
+                "CREATE (e:Employee {employee_id: $employee_id, name: $name, address: $address, branch: $branch})",
                 employee_id=employee_id, name=name, address=address, branch=branch
             )
 
     def read_employee(self, employee_id):
         with self.driver.session() as session:
-            result = session.run("MATCH (e:Employee {id: $employee_id}) RETURN e", employee_id=employee_id)
-            return result.single()
+            result = session.run("MATCH (e:Employee {employee_id: $employee_id}) RETURN e", employee_id=employee_id)
+            record = result.single()  
+        if record:
+            employee_node = record["e"] 
+            return dict(employee_node)  
+        else:
+            return None  
 
     def update_employee(self, employee_id, updates):
         with self.driver.session() as session:
             session.run(
-                "MATCH (e:Employee {id: $employee_id}) SET e += $updates RETURN e",
+                "MATCH (e:Employee {employee_id: $employee_id}) SET e += $updates RETURN e",
                 employee_id=employee_id, updates=updates
             )
 
     def delete_employee(self, employee_id):
         with self.driver.session() as session:
-            session.run("MATCH (e:Employee {id: $employee_id}) DELETE e", employee_id=employee_id)
+            session.run("MATCH (e:Employee {employee_id: $employee_id}) DELETE e", employee_id=employee_id)
 
     # Car rental actions
-    def order_car(self, customer_id, car_id):
+    def order_car(self, customer_id, reg_nr):
         with self.driver.session() as session:
-            # Ensure car is available and customer has no other bookings
-            session.run(
-                "MATCH (c:Car {id: $car_id, status: 'available'}), (cust:Customer {id: $customer_id}) "
-                "SET c.status = 'booked' "
-                "RETURN c, cust",
-                car_id=car_id, customer_id=customer_id
+            result = session.run(
+                """
+                MATCH (c:Car {reg_nr: $reg_nr, status: 'available'}), (cust:Customer {customer_id: $customer_id})
+                WHERE NOT (cust)-[:BOOKED]->(:Car)
+                SET c.status = 'booked'
+                CREATE (cust)-[:BOOKED]->(c)
+                RETURN c, cust
+                """,
+                reg_nr=reg_nr, customer_id=customer_id
             )
 
-    def cancel_order(self, customer_id, car_id):
+            # Check if the query returned a result (i.e., booking was successful)
+            record = result.single()
+            if record:
+                return {"message": "Car booked successfully"}
+            else:
+                return {"error": "Booking failed. Either the car is not available or the customer already has a booking."}
+
+    def cancel_order(self, customer_id, reg_nr):
         with self.driver.session() as session:
-            # Ensure the car is booked by the customer, then make it available
-            session.run(
-                "MATCH (c:Car {id: $car_id, status: 'booked'}), (cust:Customer {id: $customer_id}) "
-                "SET c.status = 'available' "
-                "RETURN c",
-                car_id=car_id, customer_id=customer_id
+            result = session.run(
+                """
+                MATCH (cust:Customer {customer_id: $customer_id})-[r:BOOKED]->(c:Car {reg_nr: $reg_nr, status: 'booked'})
+                SET c.status = 'available'
+                DELETE r
+                RETURN c, cust
+                """,
+                reg_nr=reg_nr, customer_id=customer_id
             )
 
-    def rent_car(self, customer_id, car_id):
+            # Check if the cancellation was successful
+            record = result.single()
+            if record:
+                return {"message": "Order cancelled successfully"}
+            else:
+                return {"error": "Cancellation failed. Either the car is not booked or the customer did not book this car."}
+
+    def rent_car(self, customer_id, reg_nr):
         with self.driver.session() as session:
-            # Ensure the car is booked by the customer, then rent it out
-            session.run(
-                "MATCH (c:Car {id: $car_id, status: 'booked'}), (cust:Customer {id: $customer_id}) "
-                "SET c.status = 'rented' "
-                "RETURN c",
-                car_id=car_id, customer_id=customer_id
+            result = session.run(
+                """
+                MATCH (cust:Customer {customer_id: $customer_id})-[r:BOOKED]->(c:Car {reg_nr: $reg_nr, status: 'booked'})
+                SET c.status = 'rented'
+                DELETE r
+                CREATE (cust)-[:RENTED]->(c)
+                RETURN c, cust
+                """,
+                reg_nr=reg_nr, customer_id=customer_id
             )
 
-    def return_car(self, customer_id, car_id, condition):
+            # Check if the query returned a result (i.e., the rent operation was successful)
+            record = result.single()
+            if record:
+                return {"message": "Car rented successfully"}
+            else:
+                return {"error": "Renting failed. Either the car is not booked or the customer did not book this car."}
+
+    def return_car(self, customer_id, reg_nr, condition):
         with self.driver.session() as session:
-            # Ensure the car is rented by the customer, then set its status based on the condition
+            # Set the car status based on the condition
             status = 'available' if condition == 'ok' else 'damaged'
-            session.run(
-                "MATCH (c:Car {id: $car_id, status: 'rented'}), (cust:Customer {id: $customer_id}) "
-                "SET c.status = $status "
-                "RETURN c",
-                car_id=car_id, customer_id=customer_id, status=status
+            
+            # Run the Cypher query
+            result = session.run(
+                """
+                MATCH (cust:Customer {customer_id: $customer_id})-[r:RENTED]->(c:Car {reg_nr: $reg_nr, status: 'rented'})
+                SET c.status = $status
+                DELETE r
+                RETURN c
+                """,
+                reg_nr=reg_nr, customer_id=customer_id, status=status
             )
 
+            # Check if the query returned a result (i.e., the car was successfully returned)
+            record = result.single()
+            if record:
+                return {"message": "Car returned successfully", "status": status}
+            else:
+                return {"error": "Return failed. Either the car is not rented or the customer did not rent this car."}
 
 
 db = CarRentalDB("neo4j://localhost:7687", 'Cars', 'passord!')
