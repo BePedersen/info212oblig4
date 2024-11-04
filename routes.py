@@ -79,7 +79,7 @@ def read_employee(employee_id):
 def update_employee(employee_id):
     data = request.get_json()  
     employee_id = data.get('id')  
-    update_result = db.update_employee(employee_id, name=name, address=address, branch=branch)
+    update_result = db.update_employee(employee_id, name=['name'], address=['address'], branch=['branch'])
     
     if update_result:
         return jsonify({'message': 'Employee updated successfully'})
