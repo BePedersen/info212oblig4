@@ -1,12 +1,12 @@
 from flask import Flask, request, jsonify
 from models import db
-from routes import car_routes
+from routes import all_routes
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
 # Register the blueprint
-app.register_blueprint(car_routes, url_prefix='/')
+app.register_blueprint(all_routes, url_prefix='/')
 
 @app.route('/')
 def home():

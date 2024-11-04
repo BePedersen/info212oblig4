@@ -7,7 +7,7 @@ class CarRentalDB:
     def close(self):
         self.driver.close()
 
-    
+    # Car CRUD
     def create_car(self, car_id, make, model, year, location, status):
         with self.driver.session() as session:
             session.run("CREATE (c:Car {id: $car_id, make: $make, model: $model, year: $year, location: $location ,status: $status})",
