@@ -10,7 +10,55 @@ def create_car():
     db.create_car(data['id'], data['make'], data['model'], data['year'], data['location'], data['status'])
     return jsonify({'message': 'Car created successfully'})
 
+@all_routes.route('/create_car/<car_id>', methods=['GET'])
+def read_car(car_id):
+    car = db.read_car(car_id)
+    if car:
+        return jsonify(car)
+    else:
+        return jsonify({'error': 'Car not found'})
+
+@all_routes.route('/create_car/<car_id>', methods=['PUT'])
+def update_car(car_id):
+    updates = request.get_json()
+    db.update_car(car_id, updates)
+    return jsonify({'message': f'Car {car_id} updated successfully'})
+
+@all_routes.route('/create_car/<car_id>', methods=['DELETE'])
+def delete_car(car_id):
+    db.delete_car(car_id)
+    return jsonify({'message': f'Car {car_id} deleted successfully'})
+
+
+
 #Customer CRUD
+@all_routes.route('/create_cust', methods=['POST'])
+def create_cust():
+    data = request.get_json()
+    db.create_customer(data('id', data('name'), data('age'), data('address')))
+    return jsonify({'message': 'Customer created successfully'})
+
+@all_routes.route()('/create_cust/', methods=['GET'])
+def read_cust(customer_id):
+    cust = db.read_customer(customer_id)
+    if cust:
+        return jsonify(cust)
+    else:
+        return jsonify({'error': 'Customer not found'})
+    
+@car_routes.route('/create_cust/<customer_id>', methods=['PUT'])
+def update_car(car_id):
+    updates = request.get_json()
+    db.update_car(car_id, updates)
+    return jsonify({'message': f'Car {car_id} updated successfully'})
+
+@car_routes.route('/create_cust/<customer_id>', methods=['DELETE'])
+def delete_customer(customer_id):
+    db.delete_customer(customer_id)
+    return jsonify({'message': f'Customer {customer_id} deleted successfully'})
+
+
+
 
 #Employee CRUD
 @all_routes.route('/create_employee', methods=['POST'])
