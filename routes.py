@@ -13,6 +13,42 @@ def create_car():
 #Customer CRUD
 
 #Employee CRUD
+@all_routes.route('/create_employee', methods=['POST'])
+def create_employee():
+    data = request.get_json()
+    db.create_employee(data['id'], data['name'], data['address'], data['branch'])
+    return jsonify({'message': 'Employee created successfully'})
+
+@all_routes.route('/read_employee', method=['GET'])
+def read_employee(employee_id):
+    employee = db.read_employee(employee_id)
+    if employee:
+        return jsonify(employee)
+    else:
+        return jsonify({'error': 'Employee not found'})
+
+@all_routes.route('/update_employee', method = ['PUT'])
+def update_employee(employee_id):
+    data = request.get_json()  
+    employee_id = data.get('id')  
+    update_result = db.update_employee(employee_id, name=name, address=address, branch=branch)
+    
+    if update_result:
+        return jsonify({'message': 'Employee updated successfully'})
+    else:
+        return jsonify({'error': 'Employee not found or update failed'})
+
+@all_routes.route('/delete_employee', methods=['DELETE'])
+def delete_employee():
+    data = request.get_json()  
+    employee_id = data.get('id')  
+    delete_result = db.delete_employee(employee_id)
+    
+    if delete_result:
+        return jsonify({'message': 'Employee deleted successfully'})
+    else:
+        return jsonify({'error': 'Employee not found or deletion failed'})
+
 
 #Car rental functions
 @all_routes.route('/order-car', methods=['POST'])
