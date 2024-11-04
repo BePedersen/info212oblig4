@@ -106,7 +106,7 @@ class CarRentalDB:
                 reg_nr=reg_nr, customer_id=customer_id
             )
 
-            # Check if the query returned a result (i.e., booking was successful)
+            # Check if the query returned a result 
             record = result.single()
             if record:
                 return {"message": "Car booked successfully"}
@@ -145,7 +145,7 @@ class CarRentalDB:
                 reg_nr=reg_nr, customer_id=customer_id
             )
 
-            # Check if the query returned a result (i.e., the rent operation was successful)
+            # Check if the query returned a result 
             record = result.single()
             if record:
                 return {"message": "Car rented successfully"}
@@ -156,8 +156,6 @@ class CarRentalDB:
         with self.driver.session() as session:
             # Set the car status based on the condition
             status = 'available' if condition == 'ok' else 'damaged'
-            
-            # Run the Cypher query
             result = session.run(
                 """
                 MATCH (cust:Customer {customer_id: $customer_id})-[r:RENTED]->(c:Car {reg_nr: $reg_nr, status: 'rented'})
@@ -168,7 +166,7 @@ class CarRentalDB:
                 reg_nr=reg_nr, customer_id=customer_id, status=status
             )
 
-            # Check if the query returned a result (i.e., the car was successfully returned)
+            # Check if the query returned a result 
             record = result.single()
             if record:
                 return {"message": "Car returned successfully", "status": status}

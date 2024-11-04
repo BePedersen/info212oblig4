@@ -14,7 +14,7 @@ def create_car():
 def read_car(reg_nr):
     car = db.read_car(reg_nr)
     if car:
-        return jsonify(car)  # car is already a dictionary
+        return jsonify(car)  
     else:
         return jsonify({'error': 'Car not found'})
     
@@ -88,10 +88,10 @@ def order_car():
     customer_id = data.get('customer_id')
     reg_nr = data.get('reg_nr')
 
-    # Call the model method to attempt to book the car
+    
     response = db.order_car(customer_id, reg_nr)
     
-    # Return the response from the model as JSON
+   
     if "message" in response:
         return jsonify(response)  # Success
     else:
@@ -104,10 +104,9 @@ def cancel_order_car():
     customer_id = data.get('customer_id')
     reg_nr = data.get('reg_nr')
 
-    # Call the model method to attempt to cancel the booking
+    
     response = db.cancel_order(customer_id, reg_nr)
     
-    # Return the response from the model as JSON
     if "message" in response:
         return jsonify(response)  # Success
     else:
@@ -119,10 +118,9 @@ def rent_car():
     customer_id = data.get('customer_id')
     reg_nr = data.get('reg_nr')
 
-    # Call the model method to attempt to book the car
+    
     response = db.rent_car(customer_id, reg_nr)
     
-    # Return the response from the model as JSON
     if "message" in response:
         return jsonify(response)  # Success
     else:
@@ -135,14 +133,11 @@ def return_car():
     reg_nr = data.get('reg_nr')
     condition = data.get('condition')
 
-    # Validate the required parameters
     if not customer_id or not reg_nr or not condition:
         return jsonify({"error": "Missing customer_id, reg_nr, or condition"})
 
-    # Call the model method to attempt to return the car
     response = db.return_car(customer_id, reg_nr, condition)
     
-    # Return the response from the model as JSON
     if "message" in response:
         return jsonify(response)   # Success
     else:
